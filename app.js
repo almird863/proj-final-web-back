@@ -26,12 +26,29 @@ const usuarioSchema = new mongoose.Schema({
     senha: { type: String, required: true }
 })
 
-const usuario = mongoose.model('usuario', usuarioSchema);
+const comentarioSchema = new mongoose.Schema({
+    nome: {type: String, required: true},
+    pagina: {type: String, required: true},
+    comentario: {type: String, required: true}
+})
+
+const usuarios = mongoose.model('truckplace_users', usuarioSchema);
+const comentarios = mongoose.model('truckplace_comments', comentarioSchema);
 
 app.get('/usuarios', (req, res) => {
-    usuario.find()
+    usuarios.find()
         .then((users) => {
             return res.json(users);
+        })
+        .catch((err) => {
+            return res.status(500).json({ message: "Erro ao Acessar o banco de dados" })
+        })
+})
+
+app.get('/comentarios', (req, res) => {
+    comentarios.find()
+        .then((comments) => {
+            return res.json(comments)
         })
         .catch((err) => {
             return res.status(500).json({ message: "Erro ao Acessar o banco de dados" })
