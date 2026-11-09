@@ -21,3 +21,5 @@ const paginaSchema = new mongoose.Schema({
         timestamps: true
     }
 )
+
+module.exports = mongoose.model('truckplace_page', paginaSchema);

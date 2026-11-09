@@ -17,6 +17,7 @@ mongoose.connect(process.env.MONGO_URI)
 
 app.use('/usuarios', require('./routes/usuarios'));
 app.use('/comentarios', require('./routes/comentarios'));
+app.use('/paginas', require('.routes/paginas'));
 
 app.listen(port, () => {
     console.log(`Servidor rodando na porta ${port}`)

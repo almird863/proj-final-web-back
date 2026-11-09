@@ -22,4 +22,5 @@ router.get('/:slug', async (req, res) => {
     }
 });
 
+
 module.exports = router;
