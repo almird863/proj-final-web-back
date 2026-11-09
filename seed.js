@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Pagina = require('./models/Pagina');
+require('dotenv').config();
 
 const paginas = [
     {
@@ -70,7 +71,9 @@ const paginas = [
 
 async function seed() {
     try {
-        await mongoose.connect(process.env.MONGO_URI);
+        const cx = process.env.MONGO_URI
+
+        await mongoose.connect(cx);
         await Pagina.deleteMany({});
         await Pagina.insertMany(paginas);
         console.log('Páginas criadas com sucesso');
