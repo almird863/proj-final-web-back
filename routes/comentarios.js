@@ -1,30 +1,24 @@
 const ex = require('express');
 const Comentario = require('../models/Comentario');
-const Usuario = require('../models/Usuario');
+const Pagina = require('../models/Pagina');
 
 const router = ex.Router();
 
-router.get('/', async (req, res) => {
+router.get('/:slug', async (req, res) => {
     try {
-        const comments = await Comentario.find();
-        return res.json(comments);
-    } catch (err) {
-        return res.status(500).json({ message: "Erro ao acessar o banco de dados" });
-    }
-});
+        const paginaEncontrada = await Pagina.findOne({ slug: req.params.slug.toLowerCase() });
 
-router.post('/', async (req, res) => {
-    const dados = req.body
-    try {
-        const novo = await Comentario.create({
-            nome: dados.nome,
-            pagina: dados.pagina,
-            comentario: dados.comentario
-        })
+        if (!paginaEncontrada) {
+            return res.status(404).json({ message: "Página não encontrada" })
+        }
 
-        return res.status(201).json(novo)
+        const comentarios = await Comentario.find({ pagina: paginaEncontrada._id })
+            .populate('autor', 'nome')
+            .sort({ createdAt: -1 });
+        return res.json(comentarios);
+
     } catch (err) {
-        return res.status(400).json({ message: "Erro ao salvar comentário"})
+        return res.status(500).json({ message: "Erro ao buscar comentários" });
     }
 });
 

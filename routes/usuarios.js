@@ -38,28 +38,47 @@ router.post('/', async (req, res) => {
     }
 });
 
-router.put('/:nome', (req, res) => {
-    const nomeParametro = decodeURIComponent(req.params.nomeParametro)
-    const dados = req.body
-    Usuario.findOneAndUpdate(
-        { nome: { $regex: new RegExp("^" + escapeRegex(nomeParametro) + "$", "i") } }, // Acha o usuário
-        { nome: dados.nome, email: dados.email, senha: dados.senha },                                      // Atualiza o usuário
-        { new: true }
-    )
-        .then((usuarioAtualizado) => {
-            if (!usuarioAtualizado) {
-                return res.status(404).json({ erro: "Usuário não encontrado" })
-            }
-            return res.json(usuarioAtualizado)
-        })
+router.put('/:nome', async (req, res) => {
+    try {
+        const nomeParametro = req.params.nome
+        const dados = req.body
 
+        const atualizacao = {};
+        if (dados.nome) atualizacao.nome = dados.nome
+        if (dados.email) atualizacao.email = dados.email
+        if (dados.senha) atualizacao.senha = await bcrypt.hash(dados.senha, 12)
+
+        const usuarioAtualizado = await Usuario.findOneAndUpdate(
+            { nome: { $regex: new RegExp("^" + escapeRegex(nomeParametro) + "$", "i") } }, // Acha o usuário
+            atualizacao,                                                                   // Atualiza o usuário
+            { new: true }
+        ).select(-senha)
+
+        if (!usuarioAtualizado) {
+            return res.status(404).json({ message: "Usuário não encontrado" })
+        }
+
+        return res.json(usuarioAtualizado)
+    } catch (err) {
+        return res.status(500).json({ message: "Erro ao atualizar usuário" })
+    }
 })
 
-router.delete('/:nome', (req, res) => {
-    const nomeParametro = decodeURIComponent(req.params.nomeParametro)
-    const dados = req.body
+router.delete('/:nome', async (req, res) => {
+    try {
+        const nomeParametro = req.params.nome
+        const dados = req.body
+        const usuario = Usuario.findOneAndDelete(
+            { nome: { $regex: new RegExp("^" + escapeRegex(nomeParametro) + "$", "i") } }, // Acha o usuário
+        )
+        if (!usuario) {
+            return res.status(404).json({ message: "Usuário não encontrado" });
+        }
+        return res.status(200).json({ message: "Usuário deletado com sucesso" })
 
-    
+    } catch (err) {
+        return res.status(500).json({ message: "Erro ao deletar usuário" })
+    }
 })
 
 module.exports = router;
