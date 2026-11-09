@@ -43,7 +43,7 @@ router.put('/:nome', (req, res) => {
     const dados = req.body
     Usuario.findOneAndUpdate(
         { nome: { $regex: new RegExp("^" + escapeRegex(nomeParametro) + "$", "i") } }, // Acha o usuário
-        { nome: dados.nome, cargo: dados.cargo },                         // Atualiza o usuário
+        { nome: dados.nome, email: dados.email, senha: dados.senha },                                      // Atualiza o usuário
         { new: true }
     )
         .then((usuarioAtualizado) => {
