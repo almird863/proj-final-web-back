@@ -20,15 +20,15 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
     try {
         const dados = req.body;
-
+        
         const senhaHash = await bcrypt.hash(dados.senha, 12);
-
+        
         await Usuario.create({
             nome: dados.nome,
             email: dados.email,
             senha: senhaHash
         });
-
+        
         return res.status(201).json({ message: "Usuário criado com sucesso" });
     } catch (err) {
         if (err.code === 11000) {
@@ -42,22 +42,22 @@ router.put('/:nome', async (req, res) => {
     try {
         const nomeParametro = req.params.nome
         const dados = req.body
-
+        
         const atualizacao = {};
         if (dados.nome) atualizacao.nome = dados.nome
         if (dados.email) atualizacao.email = dados.email
         if (dados.senha) atualizacao.senha = await bcrypt.hash(dados.senha, 12)
-
-        const usuarioAtualizado = await Usuario.findOneAndUpdate(
-            { nome: { $regex: new RegExp("^" + escapeRegex(nomeParametro) + "$", "i") } }, // Acha o usuário
-            atualizacao,                                                                   // Atualiza o usuário
-            { new: true }
-        ).select(-senha)
+            
+            const usuarioAtualizado = await Usuario.findOneAndUpdate(
+                { nome: { $regex: new RegExp("^" + escapeRegex(nomeParametro) + "$", "i") } }, // Acha o usuário
+                atualizacao,                                                                   // Atualiza o usuário
+                { new: true }
+            ).select(-senha)
 
         if (!usuarioAtualizado) {
             return res.status(404).json({ message: "Usuário não encontrado" })
         }
-
+        
         return res.json(usuarioAtualizado)
     } catch (err) {
         return res.status(500).json({ message: "Erro ao atualizar usuário" })
@@ -75,7 +75,7 @@ router.delete('/:nome', async (req, res) => {
             return res.status(404).json({ message: "Usuário não encontrado" });
         }
         return res.status(200).json({ message: "Usuário deletado com sucesso" })
-
+        
     } catch (err) {
         return res.status(500).json({ message: "Erro ao deletar usuário" })
     }
