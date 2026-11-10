@@ -14,7 +14,9 @@ const paginaSchema = new mongoose.Schema({
     },
     descricao: { type: String, required: true },
     oferece: { type: String, required: true },
-    local_horario: { type: String, required: true },
+    imagem:  { type: String, required: true },   // ex.: "assets/truck2.jpg"
+    horario: { type: String, required: true },  
+    local:   { type: String, required: true },
     mapa: { type: String, required: true }
 },
     {
