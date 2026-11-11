@@ -1,17 +1,8 @@
 const mongoose = require("mongoose")
 
 const paginaSchema = new mongoose.Schema({
-    slug: {
-        type: String,
-        unique: true,
-        trim: true,
-        lowercase: true,
-        required: true
-    },
-    titulo: {
-        type: String,
-        required: true
-    },
+    slug: { type: String, unique: true, trim: true, lowercase: true, required: true },
+    titulo: { type: String, required: true },
     descricao: { type: String, required: true },
     oferece: { type: String, required: true },
     imagem:  { type: String, required: true },   // ex.: "assets/truck2.jpg"

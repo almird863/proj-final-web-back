@@ -1,6 +1,7 @@
 const ex = require('express');
 const bcrypt = require('bcrypt');
 const Usuario = require('../models/Usuario');
+const autenticar = require('../middlewares/autenticar')
 
 const router = ex.Router();
 
@@ -38,7 +39,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-router.put('/:nome', async (req, res) => {
+router.put('/:nome', autenticar, async (req, res) => {
     try {
         const nomeParametro = req.params.nome
         const dados = req.body
@@ -64,7 +65,7 @@ router.put('/:nome', async (req, res) => {
     }
 })
 
-router.delete('/:nome', async (req, res) => {
+router.delete('/:nome', autenticar, async (req, res) => {
     try {
         const nomeParametro = req.params.nome
         const dados = req.body
