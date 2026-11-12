@@ -41,11 +41,5 @@ router.post('/login', async (req, res) => {
     }
 })
 
-const autenticar = require('../middlewares/autenticar');
-
-router.get('/teste', autenticar, (req, res) => {
-    res.json({ message: "Autenticado", usuarioId: req.usuarioId });
-});
-
 module.exports = router
 
