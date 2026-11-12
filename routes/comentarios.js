@@ -1,5 +1,6 @@
 const ex = require('express');
 const mongoose = require('mongoose');
+const Usuario = require('../models/Usuario');
 const Comentario = require('../models/Comentario');
 const Pagina = require('../models/Pagina');
 const autenticar = require('../middlewares/autenticar');

@@ -6,4 +6,4 @@ const usuarioSchema = new mongoose.Schema({
     senha: { type: String, required: true }
 });
 
-module.exports = mongoose.model('truckplace_users', usuarioSchema);
+module.exports = mongoose.model('Usuario', usuarioSchema, 'truckplace_users');
