@@ -1,63 +1,36 @@
-const express = require('express')
-const router = express.Router()
-const bcrypt = require('bcrypt')
+// routes/me.js
+// Rotas do próprio usuário logado. O id vem SEMPRE do token (req.usuarioId),
+// nunca do corpo ou da URL, então ninguém consegue mexer na conta de outra pessoa.
+//
+// Contas são criadas pelo login com Google, então:
+//  - não existe troca de senha;
+//  - o e-mail pertence à conta Google e não pode ser alterado aqui.
 
-const Usuario = require('../models/Usuario')
-const Comentario = require('../models/Comentario')
-const autenticar = require('../middlewares/autenticar')
+const express = require('express');
+const router = express.Router();
 
-const REGEX_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const SENHA_MIN = 8
-const SENHA_MAX = 72
+const Usuario = require('../models/Usuario');
+const Comentario = require('../models/Comentario');
+const autenticar = require('../middlewares/autenticar');
 
-router.use(autenticar)
+const NOME_MAX = 80;
 
-function paraResposta(user) {
-    return { id: user._id, nome: user.nome, email: user.email }
+// Todas as rotas deste arquivo exigem login
+router.use(autenticar);
+
+function paraResposta(usuario) {
+    return {
+        id: usuario._id,
+        nome: usuario.nome,
+        email: usuario.email,
+        foto: usuario.foto
+    };
 }
 
+// ---------- GET /usuarios/me ----------
 router.get('/', async (req, res) => {
     try {
-        const user = await Usuario.findById(req.usuarioId).select('nome email')
-
-        if (!user) {
-            return res.status(404).json({ message: "Usuário não encontrado" })
-        }
-
-        return res.status(200).json(paraResposta(usuario))
-    } catch (err) {
-        return res.status(500).json({ message: "Erro ao buscar usuário" })
-    }
-})
-
-router.put('/', async (req, res) => {
-    try {
-        const nome = String(req.body.nome || '').trim()
-        const email = String(req.body.email || '').trim().toLocaleLowerCase()
-
-        if (!nome) {
-            return res.status(400).json({ message: "Informe o seu nome" })
-        }
-
-        if (nome.length > 80) {
-            return res.status(400).json({ message: "O nome deve ter no máximo 80 caracteres" })
-        }
-
-        if (!REGEX_EMAIL.test(email)) {
-            return res.status(400).json({ message: "Informe um e-mail válido" })
-        }
-
-        const emailEmUso = await Usuario.exists({ email, _id: { $ne: req.usuarioId } })
-
-        if (emailEmUso) {
-            return res.status(409).json({ message: "Este e-mail já está em uso" });
-        }
-
-        const usuario = await Usuario.findByIdAndUpdate(
-            req.usuarioId,
-            { nome, email },
-            { new: true, runValidators: true }
-        ).select('nome email');
+        const usuario = await Usuario.findById(req.usuarioId).select('nome email foto');
 
         if (!usuario) {
             return res.status(404).json({ message: "Usuário não encontrado" });
@@ -65,59 +38,40 @@ router.put('/', async (req, res) => {
 
         return res.status(200).json(paraResposta(usuario));
     } catch (err) {
-        // Índice único do e-mail: cobre a corrida entre duas requisições simultâneas
-        if (err.code === 11000) {
-            return res.status(409).json({ message: "Este e-mail já está em uso" });
-        }
-
         console.error(err);
-        return res.status(500).json({ message: "Erro ao atualizar usuário" });
+        return res.status(500).json({ message: "Erro ao buscar usuário" });
     }
 });
 
-// ---------- PUT /usuarios/me/senha ----------
-router.put('/senha', async (req, res) => {
+// ---------- PUT /usuarios/me ----------
+// Só o nome pode ser alterado. Qualquer outro campo enviado é ignorado.
+router.put('/', async (req, res) => {
     try {
-        const senhaAtual = String(req.body.senhaAtual || '');
-        const senhaNova = String(req.body.senhaNova || '');
+        // String() evita que alguém envie um objeto no lugar do texto
+        const nome = String(req.body.nome || '').trim();
 
-        if (!senhaAtual || !senhaNova) {
-            return res.status(400).json({ message: "Informe a senha atual e a nova senha" });
+        if (!nome) {
+            return res.status(400).json({ message: "Informe o seu nome" });
         }
 
-        if (senhaNova.length < SENHA_MIN) {
-            return res.status(400).json({ message: `A nova senha deve ter pelo menos ${SENHA_MIN} caracteres` });
+        if (nome.length > NOME_MAX) {
+            return res.status(400).json({ message: `O nome deve ter no máximo ${NOME_MAX} caracteres` });
         }
 
-        if (senhaNova.length > SENHA_MAX) {
-            return res.status(400).json({ message: `A nova senha deve ter no máximo ${SENHA_MAX} caracteres` });
-        }
-
-        if (senhaNova === senhaAtual) {
-            return res.status(400).json({ message: "A nova senha deve ser diferente da atual" });
-        }
-
-        // O campo senha pode ter select:false no schema, por isso o +senha
-        const usuario = await Usuario.findById(req.usuarioId).select('+senha');
+        const usuario = await Usuario.findByIdAndUpdate(
+            req.usuarioId,
+            { nome },
+            { new: true, runValidators: true }
+        ).select('nome email foto');
 
         if (!usuario) {
             return res.status(404).json({ message: "Usuário não encontrado" });
         }
 
-        const senhaCorreta = await bcrypt.compare(senhaAtual, usuario.senha);
-
-        if (!senhaCorreta) {
-            // 400 e NÃO 401: o front trata 401 como "token expirado" e deslogaria o usuário
-            return res.status(400).json({ message: "Senha atual incorreta" });
-        }
-
-        const hash = await bcrypt.hash(senhaNova, 12);
-        await Usuario.updateOne({ _id: req.usuarioId }, { senha: hash });
-
-        return res.status(200).json({ message: "Senha atualizada com sucesso" });
+        return res.status(200).json(paraResposta(usuario));
     } catch (err) {
         console.error(err);
-        return res.status(500).json({ message: "Erro ao atualizar senha" });
+        return res.status(500).json({ message: "Erro ao atualizar usuário" });
     }
 });
 

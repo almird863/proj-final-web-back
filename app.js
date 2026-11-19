@@ -20,9 +20,7 @@ app.use(ex.static("public"));
 app.use('/usuarios', require('./routes/usuarios'));
 app.use('/comentarios', require('./routes/comentarios'));
 app.use('/paginas', require('./routes/paginas'));
-app.use('/auth', require('./routes/auth'))
 app.use('/usuarios/me', require('./routes/me'));
-app.use('/usuarios', require('./routes/usuarios'));
 app.use('/auth/google', require('./routes/google'));
 
 
