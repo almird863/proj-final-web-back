@@ -16,7 +16,7 @@ router.get('/:slug', async (req, res) => {
         }
 
         const comentarios = await Comentario.find({ pagina: paginaEncontrada._id })
-            .populate('autor', 'nome')
+            .populate('autor', 'nome foto')
             .sort({ createdAt: -1 });
         return res.json(comentarios);
 
@@ -49,7 +49,7 @@ router.post('/:slug', autenticar, async (req, res) => {
             comentario: texto
         });
 
-        await novo.populate('autor', 'nome');
+        await novo.populate('autor', 'nome foto');
 
         return res.status(201).json(novo);
     } catch (err) {
@@ -86,7 +86,7 @@ router.put('/:id', autenticar, async (req, res) => {
 
         comentario.comentario = texto;
         await comentario.save();
-        await comentario.populate('autor', 'nome');
+        await comentario.populate('autor', 'nome foto');
 
         return res.status(200).json(comentario);
     } catch (err) {
